@@ -1,0 +1,10 @@
+[Unit]
+Description=My Script Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python /home/dronolab/dev/photo/mavproxy-run.py > /home/dronolab/dev/photo/mavproxy-run.log 2>&1
+
+[Install]
+WantedBy=multi-user.targetcd
