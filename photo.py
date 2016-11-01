@@ -5,6 +5,7 @@ import logging
 import sys
 import time
 import os
+#import sruct
 
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
@@ -15,6 +16,9 @@ from pymongo import MongoClient
 client = MongoClient('localhost', 27017)
 db = client['fly-database']
 collection = db['fly-collection']
+
+namelist = []
+picTime = []
 
 """
 class EventHandler(FileSystemEventHandler):
@@ -32,15 +36,15 @@ def dataFromTimestamp(timestamp):
 	res30 = list(collection.find({
 		"packet_id": 30,
 		"$and":[{
-				"unix": { "$gte":  float(float(timestamp) - 0.1), "$lte":  float(float(timestamp) + 0.1) }
-		    	}]
+				"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
+				}]
 		}))
 
 	res33 = list(collection.find({
 		"packet_id": 33,
-		 "$and":[{
-				"unix": { "$gte":  float(float(timestamp) - 0.1), "$lte":  float(float(timestamp) + 0.1) }
-		    	}]
+		"$and":[{
+				"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
+				}]
 		}))
 
 	bestRes30 = findBestMatch(res30, timestamp)
@@ -66,7 +70,7 @@ def findBestMatch(datasets, timestamp):
 	return datasets[index]
 
 def matchTimeFormat(timestamp):
-	return timestamp[:10] + '.' + timestamp[10:] + '0'
+	return timestamp[:10] + '.' + timestamp[10:]
 
 def to_deg(value, loc):
 	if value < 0:
@@ -82,7 +86,7 @@ def to_deg(value, loc):
 	sec = round((t1 - min)* 60, 5)
 	return (deg, min, sec, loc_value)
 
-def set_gps_location(file_name, lat, lng, hdg, alt):
+def picInception(file_name, lat, lng, hdg, alt, rll, pch):
 
 	lat_deg = to_deg(lat, ["S", "N"])
 	lng_deg = to_deg(lng, ["W", "E"])
@@ -108,6 +112,11 @@ def set_gps_location(file_name, lat, lng, hdg, alt):
 	exiv_image.read()
 	exif_keys = exiv_image.exif_keys
 
+#	exiv_r_b = bytarray(struct.pack("f", rll))
+#	exiv_p_b = bytarray(struct.pack("f", pch))
+
+#	exiv_r_p = exiv_r_b.append(exiv_p_b)
+	print exiv_lat, exiv_lng
 	exiv_image["Exif.GPSInfo.GPSLatitude"] = exiv_lat
 	exiv_image["Exif.GPSInfo.GPSLatitudeRef"] = lat_deg[3]
 	exiv_image["Exif.GPSInfo.GPSLongitude"] = exiv_lng
@@ -119,39 +128,51 @@ def set_gps_location(file_name, lat, lng, hdg, alt):
 	exiv_image["Exif.GPSInfo.GPSDestBearingRef"] = 'M'
 	exiv_image["Exif.GPSInfo.GPSAltitude"] = exiv_alt
 	exiv_image["Exif.GPSInfo.GPSAltitudeRef"] = rel_byte
+#	exiv_image["Exif.Photo.UserComment"] = exiv_r_p
 
 	exiv_image.write()
 
-def picInception(picPath):
-	metadata = pyexiv2.ImageMetadata(picPath)
-	metadata.read()
-
-	print metadata.exif_keys
-
 def main():
-    path='/home/dronolab/dev/photo/captures/'
+	path='/home/dronolab/dev/photo/captures/'
 
-    # picTime = matchTimeFormat("1477091472590")
-    # print picTime
-    # rawDatasets = dataFromTimestamp(picTime)
-    # print rawDatasets
-    fileList = dict ([(f, f.split('.')[0]) for f in os.listdir(path) if f.split('.')[1] == "jpg" if f[0] == '1'])
-    print fileList
+	try:
+		while True:
+			picTime = []
+			namelist = []
+			fileList = []
+			try:
+				#fileList = dict ([(f, f.split('.')[0]) for f in os.listdir(path) if f.split('.')[1] == "jpg" if f[0] == '1'])
+				for f in os.listdir(path):
+					if f.split('.')[1] == "jpg":
+						if f[0] == '1':
+							fileList = dict([(f, f.split('.')[0])])
+							print fileList
+							for key, value in fileList.items():
+								namelist.append(value)
+								picTime.append(matchTimeFormat(value))
 
-	# try:
- #        while True:
-	# 		fileList = dict ([(f, f.split('.')[0]) for f in os.listdir (path) if f.split('.')[1] == "jpg"] and f.split('')[0] <= 9)
+							print picTime
+							if len(picTime) != 0:
+								for i in range(0, len(picTime)):
+									picPath=path + namelist[i] + '.jpg'
+									print picTime[i]
+									print picPath
+									rawDatasets = dataFromTimestamp(picTime[i])
+									print rawDatasets
+									print float(rawDatasets['latitude']), float(rawDatasets['longitude']), float(rawDatasets['heading']), float(rawDatasets['relative_alt']), float(rawDatasets['roll']), float(rawDatasets['pitch'])
+									picInception(picPath, float(rawDatasets['latitude']), float(rawDatasets['longitude']), float(rawDatasets['heading']), float(rawDatasets['relative_alt']), float(rawDatasets['roll']), float(rawDatasets['pitch']))
+									os.rename(picPath, path+'R-'+namelist[i]+'.jpg')
+							else:
+								print "NO PICTURES IN DICK  PIC : len(picTime) = 0"
+				time.sleep(0.5)
+			except:
+				pass
 
-	# 		picTime = matchTimeFormat("1477091472590")
-	# 	    print picTime
-	# 	    rawDatasets = dataFromTimestamp(picTime)
-	# 	    print rawDatasets
-	# 	    set_gps_location(path, float(rawDatasets['latitude']), float(rawDatasets['longitude']), float(rawDatasets['heading']), float(rawDatasets['altitude']))
-
- #    except KeyboardInterrupt:
+	except (KeyboardInterrupt, SystemExit):
+		raise
 
 if __name__ == "__main__":
-    main()
+	main()
 
 
 

@@ -6,13 +6,14 @@ timestamp() {
   date +%s%N | cut -b1-15
 }
 
-cd $1
+cd /home/dronolab/dev/photo/captures
 
 while true; do
 	timest=$(timestamp)
 	ext=".jpg"
 	filename=$timest$ext
 	sudo gphoto2 --capture-image-and-download --force-overwrite --filename=$filename
+	sudo chmod 777 $filename
 done
 
 
