@@ -6,41 +6,57 @@ import sys
 import time
 import os
 import struct
-
+import datetime
 from pymongo import MongoClient
+
+TZ = -5.0
 
 client = MongoClient('localhost', 27017)
 db = client['fly-database']
 collection = db['fly-collection']
 
+def to_dddmm_mmmmk(value, loc):
+	if value < 0:
+	   loc_value = loc[0]
+	elif value > 0:
+	   loc_value = loc[1]
+	else:
+	   loc_value = ""
+	value = abs(value)
+	a, b = divmod(value, 1)
+	a = int(a)
+	b = b * 60
+	b = "{:.4f}".format(b)
+	return str(a)+','+str(b)+loc_value
+
 def dataFromTimestamp(timestamp):
-	dataset = json.loads('{"pitch": -1, "roll": -1, "yaw": -1, "latitude": -1, "longitude": -1, "heading": -1, "altitude": -1, "relative_alt": -1, "unix30": -1, "unix33": -1, "unixPicName": -1}')
+	dataset = json.loads('{"dpch": -1, "drll": -1, "dyaw": -1, "lat": -1, "lon": -1, "hdg": -1, "altMSL": -1, "altAGL": -1, "unix30": -1, "unix33": -1, "unixPicName": -1, "grll": -1, "gpch": -1, "gyaw": -1, "imgw": -1}')
 
 	res30 = list(collection.find({
 		"packet_id": 30,
 		"$and":[{
-				"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
-				}]
+			"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
+			}]
 		}))
 
 	res33 = list(collection.find({
 		"packet_id": 33,
 		"$and":[{
-				"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
-				}]
+			"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
+			}]
 		}))
 
 	bestRes30 = findBestMatch(res30, timestamp)
 	bestRes33 = findBestMatch(res33, timestamp)
 
-	dataset['yaw']=float(bestRes30['yaw'])
-	dataset['pitch']=float(bestRes30['pitch'])
-	dataset['roll']=float(bestRes30['roll'])
-	dataset['latitude']=float(bestRes33['lat'])
-	dataset['longitude']=float(bestRes33['lon'])
-	dataset['altitude']=float(bestRes33['alt'])
-	dataset['heading']=float(bestRes33['hdg'])
-	dataset['relative_alt']=float(bestRes33['relative_alt'])
+	dataset['dyaw']=float(bestRes30['yaw'])
+	dataset['dpch']=float(bestRes30['pitch'])
+	dataset['drll']=float(bestRes30['roll'])
+	dataset['lat']=float(bestRes33['lat'])
+	dataset['lon']=float(bestRes33['lon'])
+	dataset['altMSL']=float(bestRes33['alt'])
+	dataset['hdg']=float(bestRes33['hdg'])
+	dataset['altAGL']=float(bestRes33['relative_alt'])
 	dataset['unix30']=bestRes30['unix']
 	dataset['unix33']=bestRes33['unix']
 	dataset['unixPicName']=timestamp
@@ -69,7 +85,7 @@ def to_deg(value, loc):
 	sec = round((t1 - min)* 60, 5)
 	return (deg, min, sec, loc_value)
 
-def picExifInception(file_path, lat, lng, hdg, alt, rll, pch):
+def picExifInception(file_path, lat, lng, hdg, alt, drll, dpch):
 
 	lat_deg = to_deg(lat, ["S", "N"])
 	lng_deg = to_deg(lng, ["W", "E"])
@@ -107,35 +123,34 @@ def picExifInception(file_path, lat, lng, hdg, alt, rll, pch):
 
 	exiv_image.write()
 
-def picXMPInception(file_path, altAGL, altMSL, lat, lng, hdg, grll, gpch, gyaw, imgw, ts):
+def picXMPInception(file_path, altAGL, altMSL, lat, lng, hdg, drll, dpch, dyaw, imgw, ts):
+	lat_deg = to_dddmm_mmmmk(lat, ["S", "N"])
+	lng_deg = to_dddmm_mmmmk(lng, ["W", "E"])
 
-	print "writing exif"
 	metadata = pyexiv2.ImageMetadata(file_path)
 	metadata.read()
 	pyexiv2.xmp.register_namespace('http://dronolab.com/', 'dronolab')
 
-	formatLat = (pyexiv2.Rational(lat_deg[0]*60+lat_deg[1],60),pyexiv2.Rational(lat_deg[2]*100,6000), pyexiv2.Rational(0, 1))
-	formatLng = (pyexiv2.Rational(lng_deg[0]*60+lng_deg[1],60),pyexiv2.Rational(lng_deg[2]*100,6000), pyexiv2.Rational(0, 1))
-
-	metadata['Xmp.dronolab.RelativeAltitude'] = altAGL
-	metadata['Xmp.dronolab.AbsoluteAltitude'] = altMSL
-	metadata['Xmp.dronolab.GPSLongitude'] = formatLng
-	metadata['Xmp.dronolab.GPSLatitude'] = formatLat
-	metadata['Xmp.dronolab.GPSBearing'] = hdg
+	metadata['Xmp.dronolab.RelativeAltitude'] = str(altAGL)
+	metadata['Xmp.dronolab.AbsoluteAltitude'] = str(altMSL)
+	metadata['Xmp.dronolab.GPSLongitude'] = lng_deg
+	metadata['Xmp.dronolab.GPSLatitude'] = lat_deg
+	metadata['Xmp.dronolab.GPSBearing'] = str(hdg)
 	metadata['Xmp.dronolab.GPSBearingRef'] = 'MAGNETIC'
-	metadata['Xmp.dronolab.GimbalRollDegree'] = grll
-	metadata['Xmp.dronolab.GimbalPitchDegree'] = gpch
-	metadata['Xmp.dronolab.GimbalYawDegree'] = gyaw
-	metadata['Xmp.dronolab.ImageWeight'] = imgw
-	metadata['Xmp.dronolab.TimeStamp'] = ts
+	metadata['Xmp.dronolab.GimbalRollDegree'] = str(drll)
+	metadata['Xmp.dronolab.GimbalPitchDegree'] = str(dpch)
+	metadata['Xmp.dronolab.GimbalYawDegree'] = str(dyaw)
+	metadata['Xmp.dronolab.DroneRollDegree'] = str(drll)
+	metadata['Xmp.dronolab.DronePitchDegree'] = str(dpch)
+	metadata['Xmp.dronolab.DroneYawDegree'] = str(dyaw)
+	metadata['Xmp.dronolab.ImageWeight'] = str(imgw)
+	metadata['Xmp.dronolab.TimeStamp'] = toFormatTimestamp(float(ts))
 
 	metadata.write()
-	print "writing out"
-
 
 def main():
 	path='/home/drono/obc/dev/photo/captures/'
-	fakeDataset = json.loads('{"gpch": 6.124, "grll": -5.124, "gyaw": 7.98, "lat": 50.89, "lon": 69.69, "hdg": 169.2, "altMSL": 123.12, "altAGL": 127.45, "imgw": 10, "ts": "2016-10-11 21-22-22"}')
+	#fakeDataset = json.loads('{"gpch": 6.124, "grll": -5.124, "gyaw": 7.98, "lat": 50.89, "lon": 69.69, "hdg": 169.2, "altMSL": 123.12, "altAGL": 127.45, "imgw": 10, "ts": "2016-10-11 21-22-22"}')
 	try:
 		while True:
 			picTime = []
@@ -159,27 +174,26 @@ def main():
 									print picPath
 									rawDatasets = dataFromTimestamp(picTime[i])
 									print rawDatasets
-									print rawDatasets['latitude'], rawDatasets['longitude'], rawDatasets['heading'], rawDatasets['relative_alt'], rawDatasets['roll'], rawDatasets['pitch']
 
-									picExifInception(picPath,
-										rawDatasets['latitude'],
-										rawDatasets['longitude'],
-										rawDatasets['heading'],
-										rawDatasets['relative_alt'],
-										rawDatasets['roll'],
-										rawDatasets['pitch'])
+									picExifInception(picPath, \
+										rawDatasets['lat'], \
+										rawDatasets['lon'], \
+										rawDatasets['hdg'], \
+										rawDatasets['altAGL'], \
+										rawDatasets['drll'], \
+										rawDatasets['dpch'])
 
-									picXMPInception(picPath,
-										fakeDataset['altAGL'],
-										fakeDataset['altMSL'],
-										fakeDataset['lat'],
-										fakeDataset['lon'],
-										fakeDataset['hdg'],
-										fakeDataset['grll'],
-										fakeDataset['gpch'],
-										fakeDataset['gyaw'],
-										fakeDataset['imgw'],
-										fakeDataset['ts'])
+									picXMPInception(picPath, \
+										rawDatasets['altAGL'], \
+										rawDatasets['altMSL'], \
+										rawDatasets['lat'], \
+										rawDatasets['lon'], \
+										rawDatasets['hdg'], \
+										rawDatasets['drll'], \
+										rawDatasets['dpch'], \
+										rawDatasets['dyaw'], \
+										rawDatasets['imgw'], \
+										rawDatasets['unixPicName'][:10])
 
 									os.rename(picPath, path+'X-'+namelist[i]+'.jpg')
 							else:
