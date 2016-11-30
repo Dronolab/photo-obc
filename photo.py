@@ -149,7 +149,7 @@ def picXMPInception(file_path, altAGL, altMSL, lat, lng, hdg, drll, dpch, dyaw, 
 	metadata.write()
 
 def main():
-	path='/home/drono/obc/dev/photo/captures/'
+	path=''
 	#fakeDataset = json.loads('{"gpch": 6.124, "grll": -5.124, "gyaw": 7.98, "lat": 50.89, "lon": 69.69, "hdg": 169.2, "altMSL": 123.12, "altAGL": 127.45, "imgw": 10, "ts": "2016-10-11 21-22-22"}')
 	try:
 		while True:
