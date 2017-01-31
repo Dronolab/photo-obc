@@ -1,0 +1,9 @@
+[Unit]
+Description=A6000 Photo Loop
+
+[Service]
+User=%i
+ExecStart=/home/dronolab/dev/photo/photo.sh
+
+[Install]
+WantedBy=multi-user.target

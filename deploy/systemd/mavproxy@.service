@@ -1,0 +1,11 @@
+# NOT WORKING
+[Unit]
+Description=MAVProxy service
+
+[Service]
+User=%i
+ExecStart=/usr/local/bin/mavproxy.py --load-module obc
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

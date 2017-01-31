@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Define a timestamp function
 timestamp() {
   date +%s%N | cut -b1-15
@@ -12,8 +11,6 @@ while true; do
 	timest=$(timestamp)
 	ext=".jpg"
 	filename=$timest$ext
-	sudo gphoto2 --capture-image-and-download --force-overwrite --filename=$filename
-	sudo chmod 777 $filename
+	gphoto2 --capture-image-and-download --force-overwrite --filename=$filename
+	chmod 777 $filename
 done
-
-
