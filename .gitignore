@@ -1,3 +1,6 @@
-/captures
-/static
-/templates
+captures/*
+static/
+templates/
+server.py
+_photo.py
+.idea/

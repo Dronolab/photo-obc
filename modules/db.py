@@ -1,46 +1,61 @@
+import json
+from pymongo import MongoClient
+
 
 class Database(object):
-    def __init__(self):
-        super(Database, self).__init__()
-        self.client = MongoClient('localhost', 27017)
-        self.db = client['fly-database']
-        self.collection = db['fly-collection']
-        self.arg = arg
+    def __init__(self, c):
+        self.client = MongoClient(c['DB_HOST'], c['DB_PORT'])
+        self.db = self.client[c['DB_CLIENT']]
+        self.collection = self.db[c['DB_COLL']]
 
-    def find_best_match(datasets, timestamp):
-    	index = min(range(len(datasets)), key=lambda i: abs(datasets[i]['unix']-float(timestamp)))
-    	return datasets[index]
+    def data_from_timestamp(self, timestamp, c):
+        dataset = json.loads('{"dpch": -1, '
+                             '"drll": -1, '
+                             '"dyaw": -1, '
+                             '"lat": -1, '
+                             '"lon": -1, '
+                             '"hdg": -1, '
+                             '"altMSL": -1, '
+                             '"altAGL": -1, '
+                             '"unix30": -1,'
+                             ' "unix33": -1, '
+                             '"unixPicName": -1, '
+                             '"grll": -1, '
+                             '"gpch": -1, '
+                             '"gyaw": -1, '
+                             '"imgw": -1} ')
 
-    def data_from_timestamp(timestamp):
-    	dataset = json.loads('{"dpch": -1, "drll": -1, "dyaw": -1, "lat": -1, "lon": -1, "hdg": -1, "altMSL": -1, "altAGL": -1, "unix30": -1, "unix33": -1, "unixPicName": -1, "grll": -1, "gpch": -1, "gyaw": -1, "imgw": -1}')
+        res_30 = list(self.collection.find({
+            "packet_id": 30,
+            "$and": [dict(unix={"$gte": float(float(timestamp) - c['DELTA']),
+                                "$lte": float(float(timestamp) + c['DELTA'])})]
+            }))
 
-    	res30 = list(collection.find({
-    		"packet_id": 30,
-    		"$and":[{
-    			"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
-    			}]
-    		}))
+        res_33 = list(self.collection.find({
+            "packet_id": 33,
+            "$and": [dict(unix={"$gte": float(float(timestamp) - c['DELTA']),
+                                "$lte": float(float(timestamp) + c['DELTA'])})]
+            }))
 
-    	res33 = list(collection.find({
-    		"packet_id": 33,
-    		"$and":[{
-    			"unix": { "$gte":  float(float(timestamp) - 0.3), "$lte":  float(float(timestamp) + 0.3) }
-    			}]
-    		}))
+        best_res_30 = self.find_best_match(res_30, timestamp)
+        best_res_33 = self.find_best_match(res_33, timestamp)
 
-    	bestRes30 = self.find_best_match(res30, timestamp)
-    	bestRes33 = self.find_best_match(res33, timestamp)
+        dataset['dyaw'] = float(best_res_30['yaw'])
+        dataset['dpch'] = float(best_res_30['pitch'])
+        dataset['drll'] = float(best_res_30['roll'])
+        dataset['lat'] = float(best_res_33['lat'])
+        dataset['lon'] = float(best_res_33['lon'])
+        dataset['altMSL'] = float(best_res_33['alt'])
+        dataset['hdg'] = float(best_res_33['hdg'])
+        dataset['altAGL'] = float(best_res_33['relative_alt'])
+        dataset['unix30'] = best_res_33['unix']
+        dataset['unix33'] = best_res_33['unix']
+        dataset['unixPicName'] = timestamp
 
-    	dataset['dyaw']=float(bestRes30['yaw'])
-    	dataset['dpch']=float(bestRes30['pitch'])
-    	dataset['drll']=float(bestRes30['roll'])
-    	dataset['lat']=float(bestRes33['lat'])
-    	dataset['lon']=float(bestRes33['lon'])
-    	dataset['altMSL']=float(bestRes33['alt'])
-    	dataset['hdg']=float(bestRes33['hdg'])
-    	dataset['altAGL']=float(bestRes33['relative_alt'])
-    	dataset['unix30']=bestRes30['unix']
-    	dataset['unix33']=bestRes33['unix']
-    	dataset['unixPicName']=timestamp
+        return dataset
 
-    	return dataset
+    @staticmethod
+    def find_best_match(dataset, timestamp):
+        index = min(range(len(dataset)),
+                    key=lambda i: abs(dataset[i]['unix'] - float(timestamp)))
+        return dataset[index]
