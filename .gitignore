@@ -4,3 +4,4 @@ templates/
 server.py
 _photo.py
 .idea/
+main.py
