@@ -1,6 +1,9 @@
 import pyexiv2
 import struct
-from modules.files import match_time_format
+import datetime
+
+pyexiv2.xmp.register_namespace('http://dronolab.com/', 'dronolab')
+
 
 def to_dddmm_mmmmk(value, loc):
     if value < 0:
@@ -41,7 +44,6 @@ def xmp_write(file_path, alt_agl, alt_msl, lat, lng, hdg, drll, dpch, dyaw,
 
     metadata = pyexiv2.ImageMetadata(file_path)
     metadata.read()
-    pyexiv2.xmp.register_namespace('http://dronolab.com/', 'dronolab')
 
     metadata['Xmp.dronolab.RelativeAltitude'] = str(alt_agl)
     metadata['Xmp.dronolab.AbsoluteAltitude'] = str(alt_msl)
@@ -56,9 +58,16 @@ def xmp_write(file_path, alt_agl, alt_msl, lat, lng, hdg, drll, dpch, dyaw,
     metadata['Xmp.dronolab.DronePitchDegree'] = str(dpch)
     metadata['Xmp.dronolab.DroneYawDegree'] = str(dyaw)
     metadata['Xmp.dronolab.ImageWeight'] = str(imgw)
-    metadata['Xmp.dronolab.TimeStamp'] = match_time_format(float(ts))
+
+    #tmp = timestamp[:10] + '.' + timestamp[10:]
+    print ts
+    metadata['Xmp.dronolab.TimeStamp'] = to_xmp_format_timestamp(int(ts))
 
     metadata.write()
+
+
+def to_xmp_format_timestamp(dt):
+    return datetime.datetime.utcfromtimestamp(dt).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def exif_write(file_path, lat, lng, hdg, alt, drll, dpch):
@@ -83,9 +92,9 @@ def exif_write(file_path, lat, lng, hdg, alt, drll, dpch):
     exiv_image.read()
     exif_keys = exiv_image.exif_keys
 
-    exiv_r_b = bytarray(struct.pack("f", drll))
-    exiv_p_b = bytarray(struct.pack("f", dpch))
-    exiv_r_p = exiv_r_b.append(exiv_p_b)
+    #exiv_r_b = bytarray(struct.pack("f", drll))
+    #exiv_p_b = bytarray(struct.pack("f", dpch))
+    #exiv_r_p = exiv_r_b.append(exiv_p_b)
 
     exiv_image["Exif.GPSInfo.GPSLatitude"] = exiv_lat
     exiv_image["Exif.GPSInfo.GPSLatitudeRef"] = lat_deg[3]
@@ -98,6 +107,6 @@ def exif_write(file_path, lat, lng, hdg, alt, drll, dpch):
     exiv_image["Exif.GPSInfo.GPSDestBearingRef"] = 'M'
     exiv_image["Exif.GPSInfo.GPSAltitude"] = exiv_alt
     exiv_image["Exif.GPSInfo.GPSAltitudeRef"] = rel_byte
-    exiv_image["Exif.Photo.UserComment"] = exiv_r_p
+    #exiv_image["Exif.Photo.UserComment"] = exiv_r_p
 
     exiv_image.write()

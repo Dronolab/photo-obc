@@ -37,25 +37,32 @@ class Database(object):
                                 "$lte": float(float(timestamp) + c['DELTA'])})]
             }))
 
-        best_res_30 = self.find_best_match(res_30, timestamp)
-        best_res_33 = self.find_best_match(res_33, timestamp)
+        if res_30 and res_33:
+            best_res_30 = self.find_best_match(res_30, timestamp)
+            best_res_33 = self.find_best_match(res_33, timestamp)
 
-        dataset['dyaw'] = float(best_res_30['yaw'])
-        dataset['dpch'] = float(best_res_30['pitch'])
-        dataset['drll'] = float(best_res_30['roll'])
-        dataset['lat'] = float(best_res_33['lat'])
-        dataset['lon'] = float(best_res_33['lon'])
-        dataset['altMSL'] = float(best_res_33['alt'])
-        dataset['hdg'] = float(best_res_33['hdg'])
-        dataset['altAGL'] = float(best_res_33['relative_alt'])
-        dataset['unix30'] = best_res_33['unix']
-        dataset['unix33'] = best_res_33['unix']
-        dataset['unixPicName'] = timestamp
+            print best_res_33
+            dataset['dyaw'] = float(best_res_30['yaw'])
+            dataset['dpch'] = float(best_res_30['pitch'])
+            dataset['drll'] = float(best_res_30['roll'])
+            dataset['lat'] = float(best_res_33['lat'])
+            dataset['lon'] = float(best_res_33['lon'])
+            dataset['altMSL'] = float(best_res_33['alt'])
+            dataset['hdg'] = float(best_res_33['hdg'])
+            dataset['altAGL'] = float(best_res_33['relative_alt'])
+            dataset['unix30'] = best_res_33['unix']
+            dataset['unix33'] = best_res_33['unix']
+            dataset['unixPicName'] = timestamp
 
-        return dataset
 
-    @staticmethod
-    def find_best_match(dataset, timestamp):
-        index = min(range(len(dataset)),
-                    key=lambda i: abs(dataset[i]['unix'] - float(timestamp)))
+            return dataset
+
+        else:
+            return None
+
+    def find_best_match(self, dataset, timestamp):
+        print dataset
+        index = min(range(len(dataset)), key=lambda i: abs(dataset[i]['unix'] - float(timestamp)))
+        print "index"
+        print dataset[index]
         return dataset[index]

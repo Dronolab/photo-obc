@@ -7,10 +7,12 @@ timestamp() {
 
 cd /home/dronolab/dev/photo/captures
 
-while true; do
+while true
+do
 	timest=$(timestamp)
 	ext=".jpg"
 	filename=$timest$ext
 	gphoto2 --capture-image-and-download --force-overwrite --filename=$filename
 	chmod 777 $filename
 done
+

@@ -1,11 +1,11 @@
-# NOT WORKING
 [Unit]
 Description=MAVProxy service
 
 [Service]
-User=%i
-ExecStart=/usr/local/bin/mavproxy.py --load-module obc
+Type=forking
+ExecStart=/home/dronolab/dev/photo/start-MAVProxy.sh
 Restart=always
+RestartSec=2s
 
 [Install]
 WantedBy=multi-user.target

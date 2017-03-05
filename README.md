@@ -2,8 +2,7 @@
 
 ## Requirements
 
-* Python 3.x
-* virtualenv-3.x
+* Python 2.7
 
 ## Deploy
 
