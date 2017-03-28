@@ -17,7 +17,13 @@
 * `systemctl daemon-reload`
 
 
-#MongoDB
+# MongoDB
 
 * `nano /etc/mongod.conf`
 * dbPath: `/var/lib/mongodb`
+
+# Photo renaming :
+
+* X : with metadata
+* U : no metadata found
+* nothing : not process yet

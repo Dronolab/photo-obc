@@ -59,8 +59,6 @@ def xmp_write(file_path, alt_agl, alt_msl, lat, lng, hdg, drll, dpch, dyaw,
     metadata['Xmp.dronolab.DroneYawDegree'] = str(dyaw)
     metadata['Xmp.dronolab.ImageWeight'] = str(imgw)
 
-    #tmp = timestamp[:10] + '.' + timestamp[10:]
-    print ts
     metadata['Xmp.dronolab.TimeStamp'] = to_xmp_format_timestamp(int(ts))
 
     metadata.write()

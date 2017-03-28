@@ -42,6 +42,7 @@ class Files:
             for i in range(0, len(self.paths)):
                 data = db.data_from_timestamp(self.times[i], c)
                 if data is not None:
+                    print "PROCESS: " + self.paths
                     meta.exif_write(self.paths[i],
                                     data['lat'],
                                     data['lon'],
@@ -65,6 +66,8 @@ class Files:
                     os.rename(self.paths[i],
                               c['PICTURE_PATH'] + 'X-' + self.names[i] + '.jpg')
                 else:
+                    os.rename(self.paths[i],
+                              c['PICTURE_PATH'] + 'U-' + self.names[i] + '.jpg')
                     print "NO DATA"
 
         else:
