@@ -60,5 +60,4 @@ class Database(object):
 
     def find_best_match(self, dataset, timestamp):
         index = min(range(len(dataset)), key=lambda i: abs(dataset[i]['unix'] - float(timestamp)))
-        print dataset[index]
         return dataset[index]

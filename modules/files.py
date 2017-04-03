@@ -1,4 +1,6 @@
 import os
+from os import listdir
+from os.path import isfile, join
 import imp
 from collections import deque
 
@@ -19,9 +21,9 @@ class Files:
     def get_name_list(self):
         names = deque([])
         if self.files is not None:
-            for key, value in self.files.items():
-                names.appendleft(value)
-                return names
+            for a in self.files:
+                names.appendleft(a.split(".")[0])
+            return names
 
     def get_time_list(self):
         times = deque([])
@@ -42,7 +44,6 @@ class Files:
             for i in range(0, len(self.paths)):
                 data = db.data_from_timestamp(self.times[i], c)
                 if data is not None:
-                    print "PROCESS: " + self.paths
                     meta.exif_write(self.paths[i],
                                     data['lat'],
                                     data['lon'],
@@ -65,20 +66,30 @@ class Files:
 
                     os.rename(self.paths[i],
                               c['PICTURE_PATH'] + 'X-' + self.names[i] + '.jpg')
-                else:
-                    os.rename(self.paths[i],
-                              c['PICTURE_PATH'] + 'U-' + self.names[i] + '.jpg')
-                    print "NO DATA"
+                if data is None:
+                    if self.paths[i]:
+                        try:
+                            os.rename(self.paths[i],
+                                      c['PICTURE_PATH'] + 'U-' + self.names[i] + '.jpg')
+                            print "NO DATA"
+                        except:
+                            print "BUG"
 
         else:
             print "NO PICTURES"
 
     def get_file_list(self, path):
-        for f in os.listdir(path):
-            if f.split('.')[1] == "jpg":
-                if f[0] == '1':
-                    return dict([(f, f.split('.')[0])])
-        return None
+        ofiles = [f for f in listdir(path) if isfile(join(path, f))]
+        a = dict()
+        if ofiles:
+            for f in ofiles:
+                if f.split('.')[1] == "jpg":
+                    if f[0] == '1':
+                        a.update([(f, f.split('.')[0])])
+
+            return a
+        else:
+            return None
 
     def match_time_format(self, timestamp):
         return timestamp[:10] + '.' + timestamp[10:]
