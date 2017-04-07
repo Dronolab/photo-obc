@@ -3,9 +3,12 @@ Description=MAVProxy service
 
 [Service]
 Type=forking
-ExecStart=/home/dronolab/dev/photo/start-MAVProxy.sh
+ExecStart=/bin/bash /home/dronolab/dev/photo/start-MAVProxy.sh
 Restart=always
-RestartSec=2s
+RestartSec=10s
+KillMode=process
+
 
 [Install]
 WantedBy=multi-user.target
+

@@ -11,3 +11,6 @@ systemctl status syncthing@dronolab.service | grep active
 
 echo "mavproxy"
 systemctl status  mavproxy@root.service | grep active
+
+echo "photo-meta"
+systemctl status  photo-meta@root.service | grep active

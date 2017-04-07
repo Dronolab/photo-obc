@@ -5,10 +5,11 @@ After=multi-user.target
 [Service]
 Type=simple
 User=dronolab
-WorkingDirectory=/home/dronolab/photo-obc/
-ExecStart=/usr/bin/python -u /home/dronolab/dev/photo/photo.py
+WorkingDirectory=/home/dronolab/dev/photo/
+ExecStart=/usr/bin/python /home/dronolab/dev/photo/photo.py
 Restart=always
 RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
+

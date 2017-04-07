@@ -4,7 +4,7 @@
 
 * Python 2.7
 
-## Deploy
+## Systend services
 
 * `/etc/systemd/system/`
 
@@ -14,7 +14,9 @@
 
 * `systemctl status mongodb.service`
 
-* `systemctl daemon-reload`
+* `systemctl status mavproxy@root.service`
+
+* To reload: `systemctl daemon-reload`
 
 
 # MongoDB
@@ -37,14 +39,13 @@
 * remove or move old pictures :
   * `rm ~/dev/photo/captures/*`
 
-* start MAVProxy :
-  * `sudo sh ~/dev/photo/start-MAVProxy.sh`
-
-* ensure MAVProxy is running --»n look for mavproxy in running process
+* ensure MAVProxy is running --» look for mavproxy in running process
   * `htop`
 
 * check service status --» 3 services should appear as active
   * `sh ~/dev/photo/check-services.sh`
+  * Pour les log de MAV:
+  * `tail -f /var/log/mavproxy-obc.log`
 
 * plug the camera --» it should take pictures
 

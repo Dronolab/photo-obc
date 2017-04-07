@@ -59,6 +59,8 @@ def xmp_write(file_path, alt_agl, alt_msl, lat, lng, hdg, drll, dpch, dyaw,
     metadata['Xmp.dronolab.DroneYawDegree'] = str(dyaw)
     metadata['Xmp.dronolab.ImageWeight'] = str(imgw)
 
+    #tmp = timestamp[:10] + '.' + timestamp[10:]
+    print ts
     metadata['Xmp.dronolab.TimeStamp'] = to_xmp_format_timestamp(int(ts))
 
     metadata.write()
@@ -84,7 +86,7 @@ def exif_write(file_path, lat, lng, hdg, alt, drll, dpch):
                 pyexiv2.Rational(lng_deg[2] * 100, 6000),
                 pyexiv2.Rational(0, 1))
     exiv_hdg = pyexiv2.Rational(hdg, 360)
-    exiv_alt = pyexiv2.Rational(alt, 100000000)
+    exiv_alt = pyexiv2.Rational(alt, 1)
 
     exiv_image = pyexiv2.ImageMetadata(file_path)
     exiv_image.read()

@@ -6,3 +6,4 @@ _photo.py
 .idea/
 main.py
 venv/
+*.pyc
