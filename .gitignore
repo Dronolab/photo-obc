@@ -7,3 +7,5 @@ _photo.py
 main.py
 venv/
 *.pyc
+modules/files.py
+modules/timer.py

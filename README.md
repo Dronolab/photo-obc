@@ -1,7 +1,7 @@
 # DRONOLAB - OBC PHOTO
 
 ## Requirements
-
+* MongoDB
 * Python 2.7
 
 ## Systend services

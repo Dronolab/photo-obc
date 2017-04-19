@@ -54,15 +54,12 @@ class Database(object):
             dataset['unix33'] = best_res_33['unix']
             dataset['unixPicName'] = timestamp
 
-
             return dataset
 
         else:
             return None
 
     def find_best_match(self, dataset, timestamp):
-        #print dataset
-        index = min(range(len(dataset)), key=lambda i: abs(dataset[i]['unix'] - float(timestamp)))
-        #print "index"
-        #print dataset[index]
+        index = min(range(len(dataset)), key=lambda i: abs(dataset[i]['unix'] -
+                                                           float(timestamp)))
         return dataset[index]
