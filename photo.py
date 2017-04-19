@@ -28,12 +28,16 @@ class FolderCheck(FileSystemEventHandler):
     def __init__(self, q):
         self.q = q
 
-    def on_created(self, event):
+    def on_modified(self, event):
         n = event.src_path.split('/')[-1]
         if n[0] == '1' and n.split('.')[-1] == 'jpg':
-            picPathList.append(event.src_path)
-            self.q.put(('tag',  event.src_path))
+             if picPathList == []:
+                 picPathList.append(event.src_path)
+                 self.q.put(('tag',  event.src_path))
 
+             if picPathList[-1] != event.src_path:
+                 picPathList.append(event.src_path)
+                 self.q.put(('tag',  event.src_path))
 
 def everythings_gonna_be_alright():
     everythings_gonna_be_alright = False

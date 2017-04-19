@@ -14,5 +14,7 @@ do
 	filename=$timest$ext
 	gphoto2 --capture-image-and-download --force-overwrite --filename=$filename
 	chmod 777 $filename
+        chown dronolab:dronolab $filename
 done
+
 

@@ -4,5 +4,5 @@ config = {
     'DB_PORT': 27017,
     'DB_CLIENT': 'fly-database',
     'DB_COLL': 'fly-collection',
-    'DELTA': 0.3
+    'DELTA': 0.1
 }

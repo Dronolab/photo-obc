@@ -48,9 +48,9 @@ class Worker:
         return True
 
     def __send_task_to_worker(self, task):
-        if self.worker_process and self.worker_process.is_alive():
-            self.worker_process.terminate()
-            self.worker_process = None
+        #if self.worker_process and self.worker_process.is_alive():
+        #    self.worker_process.terminate()
+        #    self.worker_process = None
 
         self.worker_process = Process(target=self.__start_worker, args=(task,))
         self.worker_process.start()
@@ -78,6 +78,7 @@ class WorkerProcess:
         name = self.get_name(self.current_path)
         time = self.get_time(name)
         data = self.db.data_from_timestamp(time, self.conf)
+        print name, time
         if data is not None:
             meta.exif_write(self.current_path,
                             data['lat'],
@@ -114,6 +115,8 @@ class WorkerProcess:
                 print "NO DATA"
             except:
                 print "BUG"
+
+        self.db.kill()
 
     @staticmethod
     def get_time(_name):

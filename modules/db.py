@@ -63,3 +63,6 @@ class Database(object):
         index = min(range(len(dataset)), key=lambda i: abs(dataset[i]['unix'] -
                                                            float(timestamp)))
         return dataset[index]
+
+    def kill(self):
+        self.client.close()
